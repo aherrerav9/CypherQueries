@@ -17,14 +17,14 @@ SET
 	n.Context_ID = toInteger(row.CONTEXT_ID),
 	n.Context_Name = row.CONTEXT_NAME
 
-//Uploading Doc Download Audit Report to Neo4j - Document
+//Uploading Doc Download Audit Report to Neo4j - Documents
 LOAD CSV WITH HEADERS FROM "file:///Documents.csv" AS row
 CREATE (a:Documents)
 SET 
 	a = row,
 	a.ID = toInteger(row.ID),
-	a.Doc_ID = toInteger(row.DOCUMENT_ID),
-	a.Doc_Title = toString(row.DOCUMENT_TITLE),
+	a.Doc_ID = toInteger(row.Documents_ID),
+	a.Doc_Title = toString(row.Documents_TITLE),
 	a.Doc_Download_Date = row.DOWNLOAD_DATE
 
 //Uploading Doc Download Audit Report to Neo4j - Provider
@@ -42,7 +42,7 @@ CREATE (a:Source_Org)
 SET 
 	a = row,
 	a.ID = toInteger(row.ID),
-	a.Source_of_Doc = toString(row.DOCUMENTSOURCE),
+	a.Source_of_Doc = toString(row.DocumentsOURCE),
 	a.Source_Org = toString(row.ORGANIZATION),
 	a.Source_Network = toString(row.NETWORK)
 
@@ -89,3 +89,59 @@ CREATE INDEX ON :Department(ID)
 CREATE INDEX ON :Patient(ID)
 
 //Creating Data Relationships 
+
+//PRS_Context to Documents
+MATCH (c:PRS_Context),(d:Documents)
+WHERE c.ID = d.ID
+MERGE (c)-[r:DOWNLOADS]->(d)
+RETURN c, r, d
+LIMIT 10
+
+//Documents to Source_Org
+MATCH (d:Documents),(s:Source_Org)
+WHERE d.ID = s.ID
+MERGE (d)-[r:UPLOADED_BY]->(s)
+RETURN d, r, s
+LIMIT 10
+
+//Documents to Patient
+MATCH (d:Documents),(p:Patient)
+WHERE d.ID = p.ID
+MERGE (d)-[r:ABOUT]->(p)
+RETURN d, r, p
+LIMIT 10
+
+//Documents to Provider
+MATCH (d:Documents),(p:Provider)
+WHERE d.ID = p.ID
+MERGE (d)-[r:DOWNLOADED_BY]->(p)
+RETURN d, r, p
+LIMIT 10
+
+//Patient to Department
+MATCH (p:Patient),(d:Department)
+WHERE p.ID = d.ID
+MERGE (p)-[r:RECEIVED_CARE_AT]->(d)
+RETURN p, r, d
+LIMIT 10
+
+//Department to Medical Group
+MATCH (d:Department), (m:MedicalGroup)
+WHERE d.ID = m.ID
+MERGE (d)-[r:PART_OF]->(m)
+RETURN d, r, m
+LIMIT 10
+
+//MedicalGroup to PRS_Context
+MATCH (m:MedicalGroup),(c:PRS_Context)
+WHERE m.ID = c.ID
+MERGE (m)-[r:PART_OF]->(c)
+RETURN m, r, c
+LIMIT 10
+
+//Provider to PRS_Context
+MATCH (p:Provider),(c:PRS_Context)
+WHERE p.ID = c.ID
+MERGE (p)-[r:EMPLOYED_BY]->(c)
+RETURN p, r, c
+LIMIT 10
