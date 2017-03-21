@@ -145,3 +145,66 @@ WHERE p.ID = c.ID
 MERGE (p)-[r:EMPLOYED_BY]->(c)
 RETURN p, r, c
 LIMIT 10
+
+//Checking our bases
+//WHAT IS THE SCHEMA - aka what's related and how is it related?
+CALL db.schema()
+
+//Node labels
+CALL db.labels()
+
+//relationship types
+CALL db.relationshipTypes()
+
+//Display constraints and indexes
+//Constraint - helps with data integrity by ensuring uniqueness of certain properties on nodes with specific labels
+///adding constraints implicitly add an index on the property, so don't need to do it separately
+//Index - add it to help the graph DB find the starting point as quickly as possible (don't necessarily need it)
+:schema
+
+
+//Understanding things about the data
+//Counting nodes
+MATCH (n)
+RETURN count(n)
+
+//Count all relationships
+MATCH ()-->()
+RETURN count(*);
+
+//What kinds of nodes exist? What kinds of properties and relationships exist for some of nodes
+//Get lay of the land
+
+MATCH (n) 
+WHERE rand() <= 0.1 //This samples 10% of total amount of records
+RETURN
+DISTINCT labels(n),
+count(*) AS SampleSize,
+avg(size(keys(n))) as Avg_PropertyCount, //keys returns info about properties
+min(size(keys(n))) as Min_PropertyCount,
+max(size(keys(n))) as Max_PropertyCount,
+avg(size( (n)-[]-() ) ) as Avg_RelationshipCount,
+min(size( (n)-[]-() ) ) as Min_RelationshipCount,
+max(size( (n)-[]-() ) ) as Max_RelationshipCount
+
+MATCH (n)
+WHERE rand() <= 0.1 
+RETURN
+	DISTINCT labels(),
+	count (*) AS SampleSize,
+	avg(size(keys(n))) as Avg_PropertyCount,
+	min(size(keys(n))) as Min_PropertyCount,
+	max(size(keys(n))) as Max_PropertyCount,
+	avg(size( (n)-[]-() ) ) as Avg_RelationshipCount,
+	min(size( (n)-[]-() ) ) as Min_RelationshipCount,
+	max(size( (n)-[]-() ) ) as Max_RelationshipCount
+
+
+//Query - show relatedness of doctors (eg who are the doctors pulling docs from same place)
+
+//Recommend - help parse signal from noise with documents we show PRS user aka put relevant docs it at the top of the bucket of documents to download
+//Look at info on document (source, organization, network) and geographic area (aka if context is in area with more CQ or CQ) - eg feed CQ documents to providers in CQ-dense area
+//if we used FHIR-based CCDA docs, we could get more granular (aka determine if docs are blank or not) AND then spit out documents with the most relevant sections
+//eg patient, allergies, meds, problem list, etc.. but it would show as most basic unit of transaction
+
+//Shortest Path
